@@ -5,23 +5,18 @@ import { useState } from "react";
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [userCreated, setUserCreated] = useState(false);
+  const [creatingUser, setCreatingUser] = useState(false);
 
   async function handleFormSubmit(ev) {
     ev.preventDefault();
-    try {
-      const res = await fetch("/api/register", {
-        method: "POST",
-        body: JSON.stringify({ email, password }),
-        headers: { "Content-Type": "application/json" },
-      });
-
-      if (res.ok) {
-      } else {
-        console.error("Registration failed");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    }
+    setCreatingUser(true);
+    await fetch("/api/register", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+      headers: { "Content-Type": "application/json" },
+    });
+    setCreatingUser(false);
   }
 
   return (
@@ -32,6 +27,7 @@ export default function RegisterPage() {
           type="email"
           placeholder="Email"
           value={email}
+          disabled={creatingUser}
           onChange={(ev) => setEmail(ev.target.value)}
           required
         />
@@ -39,10 +35,11 @@ export default function RegisterPage() {
           type="password"
           placeholder="Password"
           value={password}
+          disabled={creatingUser}
           onChange={(ev) => setPassword(ev.target.value)}
           required
         />
-        <button type="submit">Register</button>
+        <button type="submit" disabled={creatingUser}>Register</button>
         <div className="my-4 text-center text-gray-500">or</div>
         <button className="flex gap-4 justify-center" type="button">
           <Image src="/google.png" alt="Google" width={24} height={24} />
