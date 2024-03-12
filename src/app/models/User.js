@@ -8,20 +8,25 @@ const UserSchema = new Schema({
     required: true,
     validate: {
       validator: function (pass) {
-        if (!pass || pass.length < 5) {
-          throw new Error("Password must be at least 5 characters long.");
-        }
-        return true;
+        return pass && pass.length >= 5;
       },
       message: "Password must be at least 5 characters long.",
     },
   },
 }, { timestamps: true });
 
-UserSchema.post('validate', function(user) {
-  const notHashedPassword = User.password;
-  const salt = bcrypt.genSaltSync(10);
-  user.password = bcrypt.hashSync(notHashedPassword, salt);
-})
+UserSchema.pre('save', async function(next) {
+  if (!this.isModified('password')) {
+    return next();
+  }
+
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
 export const User = models.User || model('User', UserSchema);
